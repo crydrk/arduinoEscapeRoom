@@ -21,9 +21,6 @@ int nodeRedPort = 1883;
 #define RST_PIN D3
 MFRC522 rfid(SS_PIN, RST_PIN);  // Create MFRC522 instance.
 
-String lastID = "";
-bool isConnected;
-
 // buffers for receiving and sending data
 char packetBuffer[UDP_TX_PACKET_MAX_SIZE + 1]; //buffer to hold incoming packet,
 char  ReplyBuffer[] = "good";       // a string to send back
@@ -32,11 +29,13 @@ WiFiUDP Udp;
 
 void setup() 
 {
-  
+
+  // Wait to connect to WiFi
   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
   WiFi.begin(STASSID, STAPSK);
-  while (WiFi.status() != WL_CONNECTED) {
+  while (WiFi.status() != WL_CONNECTED) 
+  {
     Serial.print('.');
     delay(500);
   }
@@ -70,7 +69,6 @@ void loop()
       {
         Serial.println("sending verification");
         // send a reply, to the IP address and port that sent us the packet we received
-        nodeRedIP = Udp.remoteIP();
         Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
         Udp.write(ReplyBuffer);
         Udp.endPacket();
@@ -96,7 +94,8 @@ void loop()
     // Check is the PICC of Classic MIFARE type
     if (piccType != MFRC522::PICC_TYPE_MIFARE_MINI &&  
       piccType != MFRC522::PICC_TYPE_MIFARE_1K &&
-      piccType != MFRC522::PICC_TYPE_MIFARE_4K) {
+      piccType != MFRC522::PICC_TYPE_MIFARE_4K) 
+    {
       Serial.println(F("Your tag is not of type MIFARE Classic."));
       return;
     }
@@ -120,7 +119,7 @@ void loop()
     Udp.write(charArray);
     Udp.endPacket();
 
-    delay(1000);
+    delay(100);
 
 
 }

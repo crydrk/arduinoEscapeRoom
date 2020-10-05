@@ -1,0 +1,11 @@
+NodeRed Hue connection has issues on Pi Zero. One concern is the lack of support for ARM6l from nodeJS which ends at 10.22.1. Current version is 12.x, and works fine on PC.
+Discussion on the github: https://github.com/Foddy/node-red-contrib-huemagic/issues/106
+
+https://blog.hau.me/2018/12/27/setting-up-node-red-on-a-raspberry-pi-zero-w/
+
+Had to specify the audio path names when running headless - doesn't like relative path: https://raspberrypi.stackexchange.com/questions/5314/pygame-mixer-sound-not-playing-when-script-run-from-command-line
+
+rc.local for startup: https://www.dexterindustries.com/howto/run-a-program-on-your-raspberry-pi-at-startup/
+
+
+
