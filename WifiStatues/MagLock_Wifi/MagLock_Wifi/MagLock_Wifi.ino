@@ -10,7 +10,7 @@
 
 // Node red udp connection info
 IPAddress nodeRedIP(192,168,0,160);
-int nodeRedPort = 1884;
+int nodeRedPort = 2004;
 
 // buffers for receiving and sending data
 char packetBuffer[UDP_TX_PACKET_MAX_SIZE + 1]; //buffer to hold incoming packet

@@ -14,7 +14,7 @@
 
 // Node red udp connection info
 IPAddress nodeRedIP(192,168,0,160);
-int nodeRedPort = 1883; 
+int nodeRedPort = 2001; 
 
 // RFID setup
 #define SS_PIN D8
