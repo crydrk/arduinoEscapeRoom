@@ -66,7 +66,7 @@ void loop()
       Serial.println("Contents:");
       Serial.println(packetBuffer);
 
-      if (strcmp(packetBuffer, "verify\n"))
+      if (!strcmp(packetBuffer, "verify"))
       {
         Serial.println("sending verification");
         // send a reply, to the IP address and port that sent us the packet we received

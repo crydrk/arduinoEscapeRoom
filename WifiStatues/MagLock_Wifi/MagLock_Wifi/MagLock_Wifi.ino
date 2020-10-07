@@ -22,8 +22,8 @@ bool isLocked = false;
 void setup() 
 {
   // Setup the pin and make sure it starts off
-  pinMode(3, OUTPUT);
-  digitalWrite(3, LOW);
+  pinMode(D13, OUTPUT);
+  digitalWrite(D13, LOW);
 
   // Wait to connect to WiFi
   Serial.begin(115200);
@@ -55,9 +55,10 @@ void loop()
       int n = Udp.read(packetBuffer, UDP_TX_PACKET_MAX_SIZE);
       packetBuffer[n] = 0;
       Serial.println("Contents:");
-      Serial.println(packetBuffer);
+      Serial.printf(packetBuffer);
+      Serial.println(" ");
 
-      if (strcmp(packetBuffer, "verify\n"))
+      if (!strcmp(packetBuffer, "verify"))
       {
         Serial.println("sending verification");
         // send a reply, to the IP address and port that sent us the packet we received
@@ -66,29 +67,29 @@ void loop()
         Udp.write(verificationReply);
         Udp.endPacket();
       }
-      else if (strcmp(packetBuffer, "on\n"))
+      else if (!strcmp(packetBuffer, "on"))
       {
         Serial.println("turning on maglock");
         isLocked = true;
-        digitalWrite(3, HIGH);
+        digitalWrite(D13, HIGH);
         // send a reply, to the IP address and port that sent us the packet we received
         Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
         char onReply[] = "on";
         Udp.write(onReply);
         Udp.endPacket();
       }
-      else if (strcmp(packetBuffer, "off\n"))
+      else if (!strcmp(packetBuffer, "off"))
       {
         Serial.println("turning off maglock");
         isLocked = false;
-        digitalWrite(3, LOW);
+        digitalWrite(D13, LOW);
         // send a reply, to the IP address and port that sent us the packet we received
         Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
         char offReply[] = "off";
         Udp.write(offReply);
         Udp.endPacket();
       }
-      else if (strcmp(packetBuffer, "status\n"))
+      else if (!strcmp(packetBuffer, "status"))
       {
         Serial.println("returning status");
         // send a reply, to the IP address and port that sent us the packet we received
