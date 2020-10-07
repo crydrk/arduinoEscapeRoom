@@ -7,5 +7,4 @@ Had to specify the audio path names when running headless - doesn't like relativ
 
 rc.local for startup: https://www.dexterindustries.com/howto/run-a-program-on-your-raspberry-pi-at-startup/
 
-
-
+omxplayer wrapper: https://python-omxplayer-wrapper.readthedocs.io/en/latest/

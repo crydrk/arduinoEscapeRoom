@@ -2,10 +2,6 @@
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 
-// RFID libraries
-#include <SPI.h>
-#include <MFRC522.h>
-
 // Wifi Setup
 #ifndef STASSID
 #define STASSID "SGC Surveillance Van"
@@ -14,21 +10,20 @@
 
 // Node red udp connection info
 IPAddress nodeRedIP(192,168,0,160);
-int nodeRedPort = 1883; 
-
-// RFID setup
-#define SS_PIN D8
-#define RST_PIN D3
-MFRC522 rfid(SS_PIN, RST_PIN);  // Create MFRC522 instance.
+int nodeRedPort = 1884;
 
 // buffers for receiving and sending data
-char packetBuffer[UDP_TX_PACKET_MAX_SIZE + 1]; //buffer to hold incoming packet,
-char  ReplyBuffer[] = "good";       // a string to send back
+char packetBuffer[UDP_TX_PACKET_MAX_SIZE + 1]; //buffer to hold incoming packet
 
 WiFiUDP Udp;
 
+bool isLocked = false;
+
 void setup() 
 {
+  // Setup the pin and make sure it starts off
+  pinMode(3, OUTPUT);
+  digitalWrite(3, LOW);
 
   // Wait to connect to WiFi
   Serial.begin(115200);
@@ -43,9 +38,6 @@ void setup()
   Serial.println(WiFi.localIP());
   Serial.printf("UDP server on port %d\n", nodeRedPort);
   Udp.begin(nodeRedPort);
-
-  SPI.begin();
-  rfid.PCD_Init();
 }
 
 void loop() 
@@ -70,56 +62,57 @@ void loop()
         Serial.println("sending verification");
         // send a reply, to the IP address and port that sent us the packet we received
         Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
-        Udp.write(ReplyBuffer);
+        char verificationReply[] = "good";
+        Udp.write(verificationReply);
         Udp.endPacket();
+      }
+      else if (strcmp(packetBuffer, "on\n"))
+      {
+        Serial.println("turning on maglock");
+        isLocked = true;
+        digitalWrite(3, HIGH);
+        // send a reply, to the IP address and port that sent us the packet we received
+        Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
+        char onReply[] = "on";
+        Udp.write(onReply);
+        Udp.endPacket();
+      }
+      else if (strcmp(packetBuffer, "off\n"))
+      {
+        Serial.println("turning off maglock");
+        isLocked = false;
+        digitalWrite(3, LOW);
+        // send a reply, to the IP address and port that sent us the packet we received
+        Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
+        char offReply[] = "off";
+        Udp.write(offReply);
+        Udp.endPacket();
+      }
+      else if (strcmp(packetBuffer, "status\n"))
+      {
+        Serial.println("returning status");
+        // send a reply, to the IP address and port that sent us the packet we received
+        Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
+        
+        
+        if (isLocked == true)
+        {
+          char statusReply[] = "on";
+          Udp.write(statusReply);
+          Udp.endPacket();
+        }
+        else
+        {
+          char statusReply[] = "off";
+          Udp.write(statusReply);
+          Udp.endPacket();
+        }
+          
+        
       }
   
       
     }
 
     delay(100);
-
-    // Reset the loop if no new card present on the sensor/reader. This saves the entire process when idle.
-    if ( ! rfid.PICC_IsNewCardPresent())
-      return;
-  
-    // Verify if the NUID has been read
-    if ( ! rfid.PICC_ReadCardSerial())
-      return;
-  
-    Serial.print(F("PICC type: "));
-    MFRC522::PICC_Type piccType = rfid.PICC_GetType(rfid.uid.sak);
-    Serial.println(rfid.PICC_GetTypeName(piccType));
-  
-    // Check is the PICC of Classic MIFARE type
-    if (piccType != MFRC522::PICC_TYPE_MIFARE_MINI &&  
-      piccType != MFRC522::PICC_TYPE_MIFARE_1K &&
-      piccType != MFRC522::PICC_TYPE_MIFARE_4K) 
-    {
-      Serial.println(F("Your tag is not of type MIFARE Classic."));
-      return;
-    }
-  
-    Serial.print(F("In hex: "));
-    String id = "";
-    for (int i = 0; i < 4; i++)
-    {
-      Serial.print(rfid.uid.uidByte[i]);
-      Serial.print(" ");
-      id += rfid.uid.uidByte[i];
-    }
-    Serial.println();
-    Serial.println(id);
-
-    char charArray[12];
-    id.toCharArray(charArray, 12);
-
-    // send data to node-red
-    Udp.beginPacket(nodeRedIP, nodeRedPort);
-    Udp.write(charArray);
-    Udp.endPacket();
-
-    delay(100);
-
-
 }
