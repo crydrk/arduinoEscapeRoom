@@ -8,3 +8,9 @@ Had to specify the audio path names when running headless - doesn't like relativ
 rc.local for startup: https://www.dexterindustries.com/howto/run-a-program-on-your-raspberry-pi-at-startup/
 
 omxplayer wrapper: https://python-omxplayer-wrapper.readthedocs.io/en/latest/
+may need this? sudo apt install python-dbus
+
+in one iteration (10/6 commit), I'm using subprocess.check_output and calling avconv to get length. avconv is a fork of ffmpeg
+output system to variable: https://stackoverflow.com/questions/3503879/assign-output-of-os-system-to-a-variable-and-prevent-it-from-being-displayed-on
+discussion on ffmpeg/avconv and installation: https://www.raspberrypi.org/forums/viewtopic.php?t=125367
+shell command to check length: https://askubuntu.com/questions/224237/how-to-check-how-long-a-video-mp4-is-using-the-shell
