@@ -10,7 +10,7 @@
 
 // Node red udp connection info
 IPAddress nodeRedIP(192,168,0,160);
-int nodeRedPort = 2004;
+int nodeRedPort = 2005;
 
 // buffers for receiving and sending data
 char packetBuffer[UDP_TX_PACKET_MAX_SIZE + 1]; //buffer to hold incoming packet
@@ -42,6 +42,7 @@ void setup()
 
 void loop() 
 {
+    //Serial.println(WiFi.localIP());
     int packetSize = Udp.parsePacket();
     if (packetSize) 
     {
