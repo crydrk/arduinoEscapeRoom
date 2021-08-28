@@ -22,8 +22,8 @@ bool isLocked = false;
 void setup() 
 {
   // Setup the pin and make sure it starts off
-  pinMode(D13, OUTPUT);
-  digitalWrite(D13, LOW);
+  pinMode(D15, OUTPUT);
+  digitalWrite(D15, LOW);
 
   // Wait to connect to WiFi
   Serial.begin(115200);
@@ -71,7 +71,7 @@ void loop()
       {
         Serial.println("turning on maglock");
         isLocked = true;
-        digitalWrite(D13, HIGH);
+        digitalWrite(D15, HIGH);
         // send a reply, to the IP address and port that sent us the packet we received
         Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
         char onReply[] = "on";
@@ -82,7 +82,7 @@ void loop()
       {
         Serial.println("turning off maglock");
         isLocked = false;
-        digitalWrite(D13, LOW);
+        digitalWrite(D15, LOW);
         // send a reply, to the IP address and port that sent us the packet we received
         Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
         char offReply[] = "off";
