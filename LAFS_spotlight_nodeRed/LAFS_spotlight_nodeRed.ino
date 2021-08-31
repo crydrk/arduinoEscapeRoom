@@ -6,9 +6,9 @@
 #define MAX_LOOPS_BEFORE_CHANGE 4000 // change this for travel distance, higher is further
 
 // limit switch stuff
-const int startButtonPin = 4;  
+const int startButtonPin = 5;  
 int startButtonState = 0;
-const int endButtonPin = 5;  
+const int endButtonPin = 4;  
 int endButtonState = 0;
 
 bool direction = HIGH;
@@ -114,7 +114,7 @@ void loop() {
 
   if (mode == "reset")
   {
-    digitalWrite(DIR_PIN, HIGH);
+    digitalWrite(DIR_PIN, LOW);
     
     digitalWrite(PULSE_PIN, HIGH);
     delayMicroseconds(PULSE_WIDTH);
@@ -128,7 +128,7 @@ void loop() {
   }
   else if (mode == "standby")
   {
-    digitalWrite(DIR_PIN, LOW);
+    digitalWrite(DIR_PIN, HIGH);
     
     delay(500);
     moveMotor(5000);
@@ -137,7 +137,7 @@ void loop() {
   }
   else if (mode == "moving")
   {
-    digitalWrite(DIR_PIN, LOW);
+    digitalWrite(DIR_PIN, HIGH);
     
     digitalWrite(PULSE_PIN, HIGH);
     delayMicroseconds(PULSE_WIDTH);
