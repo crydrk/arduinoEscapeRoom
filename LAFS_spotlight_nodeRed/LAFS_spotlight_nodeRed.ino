@@ -1,3 +1,22 @@
+// Networking libraries
+#include <ESP8266WiFi.h>
+#include <WiFiUdp.h>
+
+// Wifi Setup
+#ifndef STASSID
+#define STASSID "SGC Surveillance Van"
+#define STAPSK  "fourwordsalluppercase374"
+#endif
+
+// Node red udp connection info
+IPAddress nodeRedIP(192,168,0,160);
+int nodeRedPort = 2103; // 2102 for right, 2103 for left
+
+// buffers for receiving and sending data
+char packetBuffer[UDP_TX_PACKET_MAX_SIZE + 1]; //buffer to hold incoming packet
+
+WiFiUDP Udp;
+
 #define PULSE_PIN D11
 #define DIR_PIN D12
 #define ENABLE_PIN D13
@@ -10,6 +29,8 @@ const int startButtonPin = 5;
 int startButtonState = 0;
 const int endButtonPin = 4;  
 int endButtonState = 0;
+
+int moveDistance = 2000;
 
 bool direction = HIGH;
 int counter = 0;
@@ -27,6 +48,12 @@ void resetPosition()
   mode = "reset";
 }
 
+void setStandby()
+{
+  readyToMove = false;
+  mode = "standby";
+}
+
 bool checkForStart()
 {
   if (digitalRead(startButtonPin) == HIGH)
@@ -40,7 +67,14 @@ bool checkForEnd()
 {
   if (digitalRead(endButtonPin) == HIGH)
   {
-    resetPosition();
+    Serial.println("ending");
+    //resetPosition();
+    Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
+    char completeReply[] = "complete";
+    Udp.write(completeReply);
+    Udp.endPacket();
+    setStandby();
+    delay(200);
   }
 }
 
@@ -79,38 +113,69 @@ void setup() {
   pinMode(endButtonPin, INPUT);
   pinMode(startButtonPin, INPUT);
 
-  resetPosition();
+  setStandby();
+
+  // Wait to connect to WiFi
+  Serial.begin(115200);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(STASSID, STAPSK);
+  while (WiFi.status() != WL_CONNECTED) 
+  {
+    Serial.print('.');
+    delay(500);
+  }
+  Serial.print("Connected! IP address: ");
+  Serial.println(WiFi.localIP());
+  Serial.printf("UDP server on port %d\n", nodeRedPort);
+  Udp.begin(nodeRedPort);
 }
 
 void loop() {
-  //delay(1000);
-  //moveMotor(200);
-  
-  //startButtonState = digitalRead(startButtonPin);
-  
-  // reset the counter when we hit max and alter direction
-  //if (counter >= MAX_LOOPS_BEFORE_CHANGE)
-  //{
-  //  changeDirection();
-  //  counter = 0;
-  //}
-  
-  //digitalWrite(DIR_PIN, direction);
 
-  //digitalWrite(PULSE_PIN, HIGH);
-  //delayMicroseconds(PULSE_WIDTH);
+  int packetSize = Udp.parsePacket();
+  if (packetSize) 
+  {
+    // read the packet into packetBufffer
+    int n = Udp.read(packetBuffer, UDP_TX_PACKET_MAX_SIZE);
+    packetBuffer[n] = 0;
+
+    if (!strcmp(packetBuffer, "verify"))
+    {
+      setStandby();
+      Serial.println("sending verification");
+      // send a reply, to the IP address and port that sent us the packet we received
+      Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
+      char verificationReply[] = "good";
+      Udp.write(verificationReply);
+      Udp.endPacket();
+    }
+    else if (!strcmp(packetBuffer, "setStandby"))
+    {
+      setStandby();
+    }
+    else if (!strcmp(packetBuffer, "reset"))
+    {
+      resetPosition();
+    }
+    else if (!strcmp(packetBuffer, "move"))
+    {
+      moveMotor(moveDistance);
+    }
+    else if (!strcmp(packetBuffer, "moveIncrease"))
+    {
+      moveDistance += 100;
+    }
+    else if (!strcmp(packetBuffer, "moveDecrease"))
+    {
+      if (moveDistance > 100)
+      {
+        moveDistance -= 100;
+      }
+      
+    }
+    
+  }
   
-  //digitalWrite(PULSE_PIN, LOW); 
-  //delayMicroseconds(PULSE_WIDTH);
-
-  //counter++;
-
-  //Serial.print("start: ");
-  //Serial.println(digitalRead(startButtonPin));
-  //Serial.print("end: ");
-  //Serial.println(digitalRead(endButtonPin));
-
-  //return;
 
   if (mode == "reset")
   {
@@ -130,9 +195,6 @@ void loop() {
   {
     digitalWrite(DIR_PIN, HIGH);
     
-    delay(500);
-    moveMotor(5000);
-
     //Serial.println("standby");
   }
   else if (mode == "moving")
